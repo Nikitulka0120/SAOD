@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+
+void FillInc(int n, int A[]){
+    for(int i = 0; i<n; i++){
+        A[i]=i;
+    }
+}
+
+void FillDec(int n, int A[]){
+    for(int i = 0; i<n; i++){
+        A[i]=n-i;
+    }
+}
+
+void FillRand(int n, int A[]){
+    srand(time(NULL));
+    for(int i = 0; i<n; i++){
+        A[i]=rand()%100;
+    }
+}
+
+int CheckSum(int n, int A[]){
+    int summ=0;
+    for(int i = 0; i<n; i++){
+        summ+=A[i];
+    }
+    return summ;
+}
+
+int RunNumber(int n, int A[]){
+    int streak=1;
+    for(int i = 1; i<n; i++){
+        if (A[i]>A[i-1]){
+            continue;
+        }
+        else{
+            streak++;
+        }
+        return streak;
+    }
+}
+
+void PrintMas(int n, int A[]){
+    for(int i = 0; i<n; i++){
+        printf("%d ",A[i]);
+    }
+    printf("\n");
+}
+
+int main(){
+    int n = 10;
+    int A[n];
+    FillInc(n, A);
+    printf("Количество серий в возрастающем массиве:%d Сумма для серии:%d\n",RunNumber(n,A),CheckSum(n,A));
+    PrintMas(n, A);
+    FillDec(n, A);
+    printf("Количество серий в убывающем массиве:%d Сумма для серии:%d\n",RunNumber(n,A),CheckSum(n,A));
+    PrintMas(n, A);
+    FillRand(n, A);
+    printf("Количество серий в случайном массиве:%d Сумма для серии:%d\n",RunNumber(n,A),CheckSum(n,A));
+    PrintMas(n, A);
+}
