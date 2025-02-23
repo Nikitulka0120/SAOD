@@ -61,62 +61,15 @@ void PrintMas(int n, int A[])
     printf("\n");
 }
 
-int ShakerSortPrint(int n, int A[])
+int bubbleSort(int n, int A[])
 {
-    printf("Контрольная сумма до сортировки:%d\n", CheckSum(n, A));
-    printf("Число серий до сортировки:%d\n", RunNumber(n, A));
+    // printf("Контрольная сумма до сортировки:%d\n",CheckSum(n, A));
+    // printf("Число серий до сортировки:%d\n",RunNumber(n, A));
     int C = 0;
     int M = 0;
-    int L = 0;
-    int R = n - 1;
-    int k = n - 1;
-    do
+    for (int i = 0; i < n - 1; i++)
     {
-        for (int j = R; j > L; j--)
-        {
-            if (A[j] < A[j - 1])
-            {
-                M++;
-                int temp = A[j];
-                M++;
-                A[j] = A[j - 1];
-                M++;
-                A[j - 1] = temp;
-                k = j;
-            }
-        }
-        L = k;
-        for (int j = L; j < R; j++)
-        {
-            if (A[j] > A[j + 1])
-            {
-                M++;
-                int temp = A[j];
-                M++;
-                A[j] = A[j + 1];
-                M++;
-                A[j + 1] = temp;
-                k = j;
-            }
-        }
-        R = k;
-    } while (L < R);
-    printf("Контрольная сумма после сортировки:%d\n", CheckSum(n, A));
-    printf("Число серий после сортировки:%d\n", RunNumber(n, A));
-    int trud = M + C;
-    return trud;
-}
-
-int ShakerSort(int n, int A[])
-{
-    int C = 0;
-    int M = 0;
-    int L = 0;
-    int R = n - 1;
-    int k = n - 1;
-    do
-    {
-        for (int j = R; j > L; j--)
+        for (int j = n - 1; j > i; j--)
         {
             C++;
             if (A[j] < A[j - 1])
@@ -127,48 +80,17 @@ int ShakerSort(int n, int A[])
                 A[j] = A[j - 1];
                 M++;
                 A[j - 1] = temp;
-                k = j;
             }
         }
-        L = k;
-        for (int j = L; j < R; j++)
-        {   
-            C++;
-            if (A[j] > A[j + 1])
-            {
-                M++;
-                int temp = A[j];
-                M++;
-                A[j] = A[j + 1];
-                M++;
-                A[j + 1] = temp;
-                k = j;
-            }
-        }
-        R = k;
-    } while (L < R);
+    }
+    // printf("Контрольная сумма после сортировки:%d\n",CheckSum(n, A));
+    // printf("Число серий после сортировки:%d\n",RunNumber(n, A));
     int trud = M + C;
     return trud;
 }
 
 int main()
 {
-
-    for (int i = 1; i < 6; i++)
-    {
-        int n = 100 * i;
-        int A[n];
-        printf("----------------------------------- Убывающий для %d эдементов -------------------------------------\n", n);
-        FillDec(n, A);
-        ShakerSortPrint(n, A);
-        printf("----------------------------------- Случайный для %d эдементов -------------------------------------\n", n);
-        FillRand(n, A);
-        ShakerSortPrint(n, A);
-        printf("----------------------------------- Возрастающий для %d эдементов -------------------------------------\n", n);
-        FillInc(n, A);
-        ShakerSortPrint(n, A);
-    }
-
     printf("+---------------+----------------------------+--------------------------+--------------------------+-----------------------------+\n");
     printf("|    N (size)   | Теоретическая Трудоемкость | Трудоемкость (убывающий) | Трудоемкость (случайный) | Трудоемкость (возрастающий) |\n");
     printf("+---------------+----------------------------+--------------------------+--------------------------+-----------------------------+\n");
@@ -180,11 +102,11 @@ int main()
         int A[n];
         int theor = 3 * (n * (n - 1) / 2) + (n * (n - 1) / 2);
         FillDec(n, A);
-        trud = ShakerSort(n, A);
+        trud = bubbleSort(n, A);
         FillRand(n, A);
-        int trud_rand = ShakerSort(n, A);
+        int trud_rand = bubbleSort(n, A);
         FillInc(n, A);
-        int trud_inc = ShakerSort(n, A);
+        int trud_inc = bubbleSort(n, A);
         printf("| %12d  | %26d | %24d | %24d | %27d |\n", n, theor, trud, trud_rand, trud_inc);
     }
 
