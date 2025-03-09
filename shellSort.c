@@ -226,7 +226,7 @@ int ShellSort(int n,int a[] ) {
         k = (k - 1) / 2; 
     }
     T= M + C;
-    return T ;
+    return T;
 }
 
 
@@ -242,9 +242,9 @@ int main()
         int n = 100 * i;
         int A[n];
         int max_trud=max_complexity(n);
-        FillDec(n, A);
+        FillRand(n, A);
         int itrud = insertSort(n, A);
-        FillDec(n, A);
+        FillRand(n, A);
         int strud = ShellSort(n, A);
         printf("| %6d  |", n);
         PrintMaxInterval(n);
