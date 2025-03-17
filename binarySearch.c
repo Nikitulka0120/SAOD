@@ -76,7 +76,7 @@ int binaryV1(int n, int A[], int X, int *C) {
     *C = 0;
     while (L <= R) {
         int m = (L + R) / 2;
-        (*C)++;  // Считаем только одно сравнение за итерацию
+        (*C)++;
 
         if (A[m] == X) {
             return m;
