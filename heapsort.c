@@ -9,9 +9,6 @@ int M = 0;
 int C_build = 0;
 int M_build = 0;
 
-double C_buildt = 0.0;
-double M_buildt = 0.0;
-
 void FillInc(int n, int A[])
 {
     for (int i = 0; i < n; i++)
@@ -30,10 +27,10 @@ void FillDec(int n, int A[])
 
 void FillRand(int n, int A[])
 {
-    srand(time(NULL));
+
     for (int i = 0; i < n; i++)
     {
-        A[i] = rand() % 100;
+        A[i] = rand() % 1000;
     }
 }
 
@@ -66,19 +63,21 @@ double calculate_C(int n)
     return 2 * n * log2(n) + n + 2;
 }
 
-double calculate_M_build(int n, int L, int R)
+double calculate_M_build(int n)
 {
-    return log2(R /( L + 1)) + 2;
+    return log2(n) + 2;
 }
 
-double calculate_C_build(int n, int L, int R)
+double calculate_C_build(int n)
 {
-    return 2 * log2(R / (L + 1));
+    return 2 * log2(n) + 1;
 }
 
 void HeapBuild(int A[], int L, int R)
 {
     int x = A[L];
+    M++;
+    M_build++;
     int i = L;
     while (1)
     {
@@ -88,7 +87,7 @@ void HeapBuild(int A[], int L, int R)
 
         C++;
         C_build++;
-        if (j + 1 <= R && A[j + 1] > A[j])
+        if (j < R && A[j + 1] > A[j])
         {
             j++;
         }
@@ -103,10 +102,10 @@ void HeapBuild(int A[], int L, int R)
         M_build++;
         i = j;
     }
-
-    A[i] = x;
+    
     M++;
     M_build++;
+    A[i] = x;
 }
 
 void HeapSort(int A[], int n)
@@ -132,48 +131,46 @@ void HeapSort(int A[], int n)
 
 int main()
 {
-    printf("Трудоемкость пирамидальной сортировки\n");
+    srand(time(NULL));
+    printf("Трудоемкость построения пирамиды\n");
     printf("+---------+-----------------------------+-----------------------------------------------+\n");
     printf("+         |       теоретические         |                  Фактические                  |\n");
     printf("+    N    +                             |---------------+---------------+---------------+\n");
     printf("|         |                             |   убывающий   |   случайный   |  возрастающий |\n");
     printf("+---------+-----------------------------+---------------+---------------+---------------+\n");
-        for (int i = 1; i < 6; i++)
+    
+    for (int i = 1; i < 6; i++)
     {
         int n = 100 * i;
         int A[n];
-        int M_teor = calculate_M(n);
-        int C_teor = calculate_C(n);
-        int teor_T = M_teor + C_teor;
+        int M_teor_build = calculate_M_build(n);
+        int C_teor_build = calculate_C_build(n);
+        int teor_T_build = M_teor_build + C_teor_build;
 
         FillDec(n, A);
-        HeapSort(A, n);
+        HeapBuild(A, 0, n-1);
         int T_buildDec = C_build + M_build;
         C_build=0;
         M_build=0;
 
         FillRand(n, A);
-        HeapSort(A, n);
-        int randT = C + M;
+        HeapBuild(A, 0, n-1);
         int T_buildRan = C_build + M_build;
         C_build=0;
         M_build=0;
 
         FillInc(n, A);
-        HeapSort(A, n);
-        int incT = C + M;
+        HeapBuild(A, 0, n-1);
         int T_buildInc = C_build + M_build;
         C_build=0;
         M_build=0;
 
-
-        printf("| %6d  | %27d | %13d | %13d | %13d |\n", n, teor_T, T_buildDec, T_buildRan, T_buildInc);
-        C = 0;
-        M = 0;
-        C_build=0;
-        M_build=0;
+        printf("| %6d  | %27d | %13d | %13d | %13d |\n", 
+               n, teor_T_build, T_buildDec, T_buildRan, T_buildInc);
     }
-    printf("\n\n\nТрудоемкость пирамидальной сортировки\n");
+    printf("+---------+-----------------------------+---------------+---------------+---------------+\n");
+
+    printf("\n\nТрудоемкость пирамидальной сортировки\n");
     printf("+---------+-----------------------------------------------+\n");
     printf("+         |                  Фактические                  |\n");
     printf("+    N    +---------------+---------------+---------------+\n");
@@ -207,9 +204,8 @@ int main()
         M = 0;
 
         printf("| %6d  | %13d | %13d | %13d |\n", n, decT, randT, incT);
-        C = 0;
-        M = 0;
     }
+    printf("+---------+---------------+---------------+---------------+\n");
 
     return 0;
 }
