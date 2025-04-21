@@ -164,13 +164,25 @@ void clear(tData *head)
     printf("\n");
 }
 
-void print_forward_recursive(tData* node) {
-    if (node == NULL) {
+void printForwardRecursive(tData *head)
+{
+    if (head == NULL) {
+        printf("\n");
         return;
     }
-    printf("%d ", node->data);
-    print_forward_recursive(node->next);
+    printf("%d ", head->data);
+    printForwardRecursive(head->next);
 }
+
+void printBackwardRecursive(tData *head)
+{
+    if (head == NULL) {
+        return;
+    }
+    printBackwardRecursive(head->next);
+    printf("%d ", head->data);
+}
+
 
 int main() {
     //проверка стека возр
@@ -227,6 +239,20 @@ int main() {
     print_list(queue_head);
     printf("Checksum: %d\n", checksum(queue_head));
     printf("Series count: %d\n", count_series(queue_head));
+    clear(queue_head);
+
+    // Тестирование очереди и рекурсии со случайными числами
+    queue_head = NULL;
+    queue_tail = NULL;
+    fillRanQueue(&queue_head, &queue_tail, N);
+    
+    printf("Очередь в прямом порядке: ");
+    printForwardRecursive(queue_head);
+    
+    printf("Очередь в обратном порядке: ");
+    printBackwardRecursive(queue_head);
+    printf("\n");
+    
     clear(queue_head);
 
     
