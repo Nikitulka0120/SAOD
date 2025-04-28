@@ -400,7 +400,7 @@ int main() {
     printf(ANSI_COLOR_YELLOW "Контрольная сумма: %d, количество серий: %d\n" ANSI_COLOR_RESET, checksum(stack), count_series(stack));
 
     Ctheor = (int)(log2(n) * n);
-    Mtheor = (int)(log2(n) * n + n);
+    Mtheor = (int)(log2(n) * n);
 
     printf(ANSI_COLOR_MAGENTA
         "\nСложность сортировки:\n"
@@ -410,11 +410,13 @@ int main() {
 
     // Блок 5. Таблица замеров
     printf(ANSI_COLOR_GREEN "Таблица замеров сложности сортировки:\n" ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_CYAN "+================================================================+\n" ANSI_COLOR_RESET);
     printf(ANSI_COLOR_CYAN "|   N   |     M + C     |  Убывающий | Случайный |  Возрастающий |\n" ANSI_COLOR_RESET);
     printf(ANSI_COLOR_CYAN "|       |  Теоретический|            |           |               |\n" ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_CYAN "+================================================================+\n" ANSI_COLOR_RESET);
 
-    for (int j = 100; j <= 400; j += 100) {
-        int Ttheor = (int)(2 * log2(j) * j + j);
+    for (int j = 100; j <= 500; j += 100) {
+        int Ttheor = (int)(2 * log2(j) * j);
 
         clear(stack);
         stack = NULL;
@@ -441,5 +443,6 @@ int main() {
         int Tdec = Cfact + Mfact;
 
         printf("| %5d | %13d | %10d | %9d | %13d |\n", j, Ttheor, Tdec, Trand, Tinc);
+        printf(ANSI_COLOR_CYAN "+================================================================+\n" ANSI_COLOR_RESET);
     }
 }
