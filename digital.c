@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
 
 #define NUM_BUCKETS 256
 
@@ -18,15 +17,12 @@ typedef struct {
     tData *tail;
 } tQueue;
 
-// Глобальные счётчики операций
-int M_f = 0; // Перемещения
-int C_f = 0; // Сравнения
+int M = 0; // Глобальный счётчик перемещений
 
 void AddToQueue(tData **head, tData **tail, int data) {
     tData *p = (tData *)malloc(sizeof(tData));
     p->data.Data = data;
     p->next = NULL;
-
     if (*tail == NULL) {
         *head = *tail = p;
     } else {
@@ -43,8 +39,8 @@ void fillDecQueue(tData **head, tData **tail, int n) {
 
 void fillRanQueue(tData **head, tData **tail, int n) {
     srand(time(NULL));
-    for (int i = 1; i <= n; i++) {
-        int ranNum = rand() % 100;
+    for (int i = 0; i < n; i++) {
+        int ranNum = rand() % 1000 + 1;
         AddToQueue(head, tail, ranNum);
     }
 }
@@ -56,183 +52,158 @@ void fillIncQueue(tData **head, tData **tail, int n) {
 }
 
 void print_list(tData *head) {
-    tData *p = head;
-    while (p != NULL) {
-        printf("%d ", p->data.Data);
-        p = p->next;
+    while (head != NULL) {
+        printf("%d ", head->data.Data);
+        head = head->next;
     }
     printf("\n");
 }
 
 void clear(tData *head) {
-    tData *p = head;
-    while (p != NULL) {
-        tData *temp_p = p;
-        p = p->next;
-        free(temp_p);
+    while (head != NULL) {
+        tData *temp = head;
+        head = head->next;
+        free(temp);
     }
-}
-
-void InitializeQueue(tQueue *q) {
-    q->head = q->tail = NULL;
-    M_f++; // Операция инициализации
 }
 
 int checksum(tData *head) {
     int sum = 0;
-    tData *p = head;
-    while (p != NULL) {
-        sum += p->data.Data;
-        p = p->next;
+    while (head != NULL) {
+        sum += head->data.Data;
+        head = head->next;
     }
     return sum;
 }
 
 int count_series(tData *head) {
-    if (head == NULL) return 0;
+    if (!head) return 0;
     int count = 1;
-    tData *p = head;
-    while (p->next != NULL) {
-        if (p->data.Data > p->next->data.Data) {
-            count++;
-        }
-        p = p->next;
+    int prev = head->data.Data;
+    tData *current = head->next;
+    while (current) {
+        if (current->data.Data < prev) count++;
+        prev = current->data.Data;
+        current = current->next;
     }
     return count;
 }
 
-tData* DigitalSort(tData *S, int bits) {
-    tQueue queues[NUM_BUCKETS];
-    tData *result = NULL;
-    tData *last = NULL;
-    
-    for (int j = 0; j < bits; j++) {
-        // Инициализация очередей
+tData* DigitalSort(tData *head, int bytes) {
+    tData* buckets[NUM_BUCKETS] = {0};
+    tData* bucketTails[NUM_BUCKETS] = {0};
+
+    for (int bit = 0; bit < bytes * 8; bit++) {
+        tData *current = head;
+
         for (int i = 0; i < NUM_BUCKETS; i++) {
-            InitializeQueue(&queues[i]);
+            buckets[i] = NULL;
+            bucketTails[i] = NULL;
         }
 
-        // Распределение по корзинам
-        tData *current = S;
-        while (current != NULL) {
-            unsigned char d = current->data.digit[j];
+        while (current) {
+            int digit = (current->data.Data >> bit) & 0x1;
             tData *next = current->next;
-            
-            if (queues[d].head == NULL) {
-                queues[d].head = queues[d].tail = current;
-            } else {
-                queues[d].tail->next = current;
-                queues[d].tail = current;
-            }
             current->next = NULL;
+
+            if (!buckets[digit]) {
+                buckets[digit] = bucketTails[digit] = current;
+            } else {
+                bucketTails[digit]->next = current;
+                bucketTails[digit] = current;
+            }
+
             current = next;
-            M_f += 3; // 3 операции перемещения
         }
 
-        // Сборка обратно в список
-        result = NULL;
-        last = NULL;
-        for (int i = 0; i < NUM_BUCKETS; i++) {
-            C_f++; // Сравнение при проверке очереди
-            if (queues[i].head != NULL) {
-                if (result == NULL) {
-                    result = queues[i].head;
-                } else {
-                    last->next = queues[i].head;
-                }
-                last = queues[i].tail;
-                M_f += 2; // 2 операции перемещения
+        head = NULL;
+        tData **tail = &head;
+
+        for (int i = 0; i < 2; i++) {
+            tData *bucket = buckets[i];
+            while (bucket) {
+                *tail = bucket;
+                tail = &bucket->next;
+                bucket = bucket->next;
+                M++;
             }
         }
-        
-        S = result;
     }
-    
-    return result;
-}
 
-void printTestHeader() {
-    printf("| %-5s | %-11s | %-11s | %-7s | %-7s | %-7s |\n", 
-           "N", "Теор. (M+C)", "Факт. (M+C)", "Убыв.", "Случ.", "Возр.");
-    printf("|-------|-------------|-------------|---------|---------|---------|\n");
+    return head;
 }
 
 void printTestRow(int n, int theory, int fact, int desc, int rand, int asc) {
-    printf("| %-5d | %-11d | %-11d | %-7d | %-7d | %-7d |\n", 
-           n, theory, fact, desc, rand, asc);
+    printf("| %-5d | %-11d | %-11d | %-7d | %-7d |\n", 
+           n, theory, desc, rand, asc);
 }
 
-void testDigitalSort(int bits) {
+void testDigitalSort(int bytes) {
     int sizes[] = {100, 200, 300, 400, 500};
-    printf("\nТестирование цифровой сортировки (%d байта)\n", bits);
-    printTestHeader();
+    printf("\nТестирование цифровой сортировки (%d бит):\n", bytes * 8);
+    printf("|-------|-------------|---------|---------|---------|\n");
+    printf("|    N  |     Теория  |  Убыв.  |  Случ.  |  Возр.  |\n");
+    printf("|-------|-------------|---------|---------|---------|\n");
 
     for (int i = 0; i < 5; i++) {
         int n = sizes[i];
-        int theory = 4 * bits * n; // Теоретическая оценка (4 операции на элемент на бит)
+        int theory = bytes * 8 * n;
         int results[3] = {0};
-        int fact_results[3] = {0};
 
         for (int t = 0; t < 3; t++) {
             tData *head = NULL, *tail = NULL;
-            
+
             switch(t) {
                 case 0: fillDecQueue(&head, &tail, n); break;
                 case 1: fillRanQueue(&head, &tail, n); break;
                 case 2: fillIncQueue(&head, &tail, n); break;
             }
 
-            M_f = 0;
-            C_f = 0;
-            head = DigitalSort(head, bits);
-            results[t] = M_f + C_f;
-            fact_results[t] = 4 * bits * n + 2 * NUM_BUCKETS * bits; // Уточнённая оценка
+            M = 0;
+            head = DigitalSort(head, bytes);
+            results[t] = M;
             clear(head);
         }
-
-        printTestRow(n, theory, fact_results[0], results[0], results[1], results[2]);
+        printf("| %-5d | %-11d | %-7d | %-7d | %-7d |\n", n, theory, results[0], results[1], results[2]);
+        printf("|-------|-------------|---------|---------|---------|\n");
     }
 }
 
-void demoSort(int bits, int n) {
+void demoSort(int bytes, int n) {
     tData *head = NULL, *tail = NULL;
     fillRanQueue(&head, &tail, n);
-    
+
     printf("\nДемонстрация работы сортировки (%d элементов):\n", n);
     printf("Исходный список:\n");
     print_list(head);
-    
+
     int sum_before = checksum(head);
     int series_before = count_series(head);
     printf("Контрольная сумма до сортировки: %d\n", sum_before);
     printf("Количество серий до сортировки: %d\n", series_before);
-    
-    M_f = C_f = 0;
-    head = DigitalSort(head, bits);
-    
-    printf("\nОтсортированный список (M=%d, C=%d):\n", M_f, C_f);
+
+    M = 0;
+    head = DigitalSort(head, bytes);
+
+    printf("\nОтсортированный список (M=%d):\n", M);
     print_list(head);
-    
+
     int sum_after = checksum(head);
     int series_after = count_series(head);
     printf("Контрольная сумма после сортировки: %d\n", sum_after);
     printf("Количество серий после сортировки: %d\n", series_after);
-    
+
     clear(head);
 }
 
 int main() {
-    // Тестирование для 4 байт (32 бита)
+    // для 4 байт
     testDigitalSort(4);
-    
-    // Демонстрация работы для 20 элементов (32 бита)
     demoSort(4, 20);
 
-    // Тестирование для 2 байт (16 бит)
+    // 2 байт
     testDigitalSort(2);
-    
-    // Демонстрация работы для 20 элементов (16 бит)
     demoSort(2, 20);
-    
+
     return 0;
 }
