@@ -1,8 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-#define NUM_BUCKETS 256
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CELLS 256
 
 typedef struct tData {
     struct tData *next;
@@ -90,15 +95,15 @@ int count_series(tData *head) {
 }
 
 tData* DigitalSort(tData *head, int bytes) {
-    tData* buckets[NUM_BUCKETS] = {0};
-    tData* bucketTails[NUM_BUCKETS] = {0};
+    tData* cells[CELLS] = {0};
+    tData* cellsTails[CELLS] = {0};
 
     for (int bit = 0; bit < bytes * 8; bit++) {
         tData *current = head;
 
-        for (int i = 0; i < NUM_BUCKETS; i++) {
-            buckets[i] = NULL;
-            bucketTails[i] = NULL;
+        for (int i = 0; i < CELLS; i++) {
+            cells[i] = NULL;
+            cellsTails[i] = NULL;
         }
 
         while (current) {
@@ -106,11 +111,11 @@ tData* DigitalSort(tData *head, int bytes) {
             tData *next = current->next;
             current->next = NULL;
 
-            if (!buckets[digit]) {
-                buckets[digit] = bucketTails[digit] = current;
+            if (!cells[digit]) {
+                cells[digit] = cellsTails[digit] = current;
             } else {
-                bucketTails[digit]->next = current;
-                bucketTails[digit] = current;
+                cellsTails[digit]->next = current;
+                cellsTails[digit] = current;
             }
 
             current = next;
@@ -120,7 +125,7 @@ tData* DigitalSort(tData *head, int bytes) {
         tData **tail = &head;
 
         for (int i = 0; i < 2; i++) {
-            tData *bucket = buckets[i];
+            tData *bucket = cells[i];
             while (bucket) {
                 *tail = bucket;
                 tail = &bucket->next;
@@ -131,11 +136,6 @@ tData* DigitalSort(tData *head, int bytes) {
     }
 
     return head;
-}
-
-void printTestRow(int n, int theory, int fact, int desc, int rand, int asc) {
-    printf("| %-5d | %-11d | %-11d | %-7d | %-7d |\n", 
-           n, theory, desc, rand, asc);
 }
 
 void testDigitalSort(int bytes) {
@@ -173,29 +173,28 @@ void demoSort(int bytes, int n) {
     tData *head = NULL, *tail = NULL;
     fillRanQueue(&head, &tail, n);
 
-    printf("\nДемонстрация работы сортировки (%d элементов):\n", n);
-    printf("Исходный список:\n");
+    printf("\n" BLUE "Демонстрация работы сортировки (%d элементов):\n" RESET, n);
+    printf(YELLOW "Исходный список:\n" RESET);
     print_list(head);
 
     int sum_before = checksum(head);
     int series_before = count_series(head);
-    printf("Контрольная сумма до сортировки: %d\n", sum_before);
-    printf("Количество серий до сортировки: %d\n", series_before);
+    printf(GREEN "Контрольная сумма до сортировки: %d\n" RESET, sum_before);
+    printf(GREEN "Количество серий до сортировки: %d\n" RESET, series_before);
 
     M = 0;
     head = DigitalSort(head, bytes);
 
-    printf("\nОтсортированный список (M=%d):\n", M);
+    printf("\n" YELLOW "Отсортированный список (M=%d):\n" RESET, M);
     print_list(head);
 
     int sum_after = checksum(head);
     int series_after = count_series(head);
-    printf("Контрольная сумма после сортировки: %d\n", sum_after);
-    printf("Количество серий после сортировки: %d\n", series_after);
+    printf(GREEN "Контрольная сумма после сортировки: %d\n" RESET, sum_after);
+    printf(GREEN "Количество серий после сортировки: %d\n" RESET, series_after);
 
     clear(head);
 }
-
 int main() {
     // для 4 байт
     testDigitalSort(4);
