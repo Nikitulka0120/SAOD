@@ -7,7 +7,7 @@
 #define YELLOW  "\033[33m"
 #define BLUE    "\033[34m"
 #define MAGENTA "\033[35m"
-#define CELLS 256
+#define CELLS 2
 
 typedef struct tData {
     struct tData *next;
