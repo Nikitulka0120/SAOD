@@ -13,12 +13,14 @@ void generateRandomText(char *buffer, size_t size) {
     buffer[size - 1] = '\0';
 }
 
-int insertLinear(char *table, int tableSize, char key) {
+int insertLinear(char *table, int tableSize, char key, int *seen) {
+    if (seen[(unsigned char)key]) return 0;
+    seen[(unsigned char)key] = 1;
+
     int h = key % tableSize;
     int collisions = 0;
 
     while (1) {
-        if (table[h] == key) return collisions;
         if (table[h] == 0) {
             table[h] = key;
             return collisions;
@@ -29,13 +31,15 @@ int insertLinear(char *table, int tableSize, char key) {
     }
 }
 
-int insertQuadratic(char *table, int tableSize, char key) {
+int insertQuadratic(char *table, int tableSize, char key, int *seen) {
+    if (seen[(unsigned char)key]) return 0;
+    seen[(unsigned char)key] = 1;
+
     int h = key % tableSize;
     int d = 1;
     int collisions = 0;
 
     while (1) {
-        if (table[h] == key) return collisions;
         if (table[h] == 0) {
             table[h] = key;
             return collisions;
@@ -116,7 +120,7 @@ int main() {
 
     printf("Исследование коллизий при открытой адресации:\n");
     printf("=================================================================\n");
-    printf("| Размер таблицы | Символов | Линейные пробы | Квадратичные пробы |\n");
+    printf("| Размер таблицы | Уникальных | Линейные пробы | Квадратичные пробы |\n");
     printf("-----------------------------------------------------------------\n");
 
     for (int i = 0; i < primesCount; i++) {
@@ -124,16 +128,22 @@ int main() {
 
         char *linearTable = calloc(size, sizeof(char));
         char *quadraticTable = calloc(size, sizeof(char));
+
         int linearCollisions = 0;
         int quadraticCollisions = 0;
+        int seenLinear[256] = {0};
+        int seenQuadratic[256] = {0};
+        int uniqueSymbols = 0;
 
         for (int j = 0; j < N; j++) {
-            linearCollisions += insertLinear(linearTable, size, text[j]);
-            quadraticCollisions += insertQuadratic(quadraticTable, size, text[j]);
+            if (!seenLinear[(unsigned char)text[j]])
+                uniqueSymbols++;
+            linearCollisions += insertLinear(linearTable, size, text[j], seenLinear);
+            quadraticCollisions += insertQuadratic(quadraticTable, size, text[j], seenQuadratic);
         }
 
-        printf("| %14d | %8d | %16d | %20d |\n",
-               size, N, linearCollisions, quadraticCollisions);
+        printf("| %14d | %10d | %16d | %20d |\n",
+               size, uniqueSymbols, linearCollisions, quadraticCollisions);
 
         free(linearTable);
         free(quadraticTable);
@@ -142,12 +152,15 @@ int main() {
     printf("=================================================================\n");
 
     int demoSize = 53;
+    int n = 60;
     char *linearDemo = calloc(demoSize, sizeof(char));
     char *quadraticDemo = calloc(demoSize, sizeof(char));
+    int seenLinearDemo[256] = {0};
+    int seenQuadraticDemo[256] = {0};
 
-    for (int i = 0; i < N; i++) {
-        insertLinear(linearDemo, demoSize, text[i]);
-        insertQuadratic(quadraticDemo, demoSize, text[i]);
+    for (int i = 0; i < n; i++) {
+        insertLinear(linearDemo, demoSize, text[i], seenLinearDemo);
+        insertQuadratic(quadraticDemo, demoSize, text[i], seenQuadraticDemo);
     }
 
     printTable(linearDemo, demoSize, "Линейные пробы");
