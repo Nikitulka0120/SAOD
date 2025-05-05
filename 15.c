@@ -129,8 +129,7 @@ int main()
 {
     srand(time(NULL));
 
-    int primes[] = {11, 19, 29, 37, 41,
-                    53, 79, 83, 89, 101};
+    int primes[] = {11, 13, 17, 19, 23, 29, 31, 37, 41, 47};
     int primesCount = sizeof(primes) / sizeof(primes[0]);
 
     char *text = (char *)malloc(N + 1);
