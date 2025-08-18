@@ -2,13 +2,14 @@
 #include <string.h>
 #include <stdbool.h>
 
-char initial_string[] = "it's just a regular text, it's just a word that needs to be found, isn't it simple? just try to find \"just\" in this regular text, just do it";
+char initial_string[] = "justregulartextjustfindinthistextjustworditsjustaword";
 char initial_substring[] = "just";
 
-bool compare(const char *haystack, int start, const char *needle, int m)
+bool compare(const char *haystack, int start, const char *needle, int m, int *comp)
 {
     for (int i = 0; i < m; i++)
     {
+        (*comp)++;
         if (haystack[start + i] != needle[i])
         {
             return false;
@@ -26,22 +27,15 @@ int direct_search(char *string, char *substring)
     printf("\033[34mSubstring text:\033[0m%s\n", substring);
     printf("\033[33mLen of string is\033[0m %d chars\n", string_len);
     printf("\033[33mLen of substring is\033[0m %d chars\n", substring_len);
-
+    int direct_comp = 0;
     for (int i = 0; i <= string_len - substring_len; i++)
     {
-        int j;
-        for (j = 0; j < substring_len; j++)
-        {
-            if (string[i + j] != substring[j])
-            {
-                break;
-            }
-        }
-        if (j == substring_len)
+        if (compare(string, i, substring, substring_len, &direct_comp))
         {
             printf("\033[36mFound substring at index\033[0m \033[1m%d\033[0m\n", i);
         }
     }
+    printf("\033[35mTotal comparisons in Direct search: %d\033[0m\n", direct_comp);
     return -1;
 }
 
@@ -57,18 +51,19 @@ int hash_string(const char *str, int start, int end, int q)
 
 int RabinKarp(char *haystack, char *needle, int q)
 {
-    printf("\033[32m \033[21mRabinKarp search:\033[0m\n");
+    printf("\033[32m \033[21mRabinKarp search (q=%d):\033[0m\n", q);
     printf("\033[34mString text:\033[0m%s\n", haystack);
     printf("\033[34mSubstring text:\033[0m%s\n", needle);
     int m = strlen(needle);
     int n = strlen(haystack);
+    int RabinKarp_comp = 0;
     int hash_needle = hash_string(needle, 0, m - 1, q);
     int hash_haystack = hash_string(haystack, 0, m - 1, q);
     for (int i = 0; i <= n - m; i++)
     {
         if (hash_haystack == hash_needle)
         {
-            if (compare(haystack, i, needle, m))
+            if (compare(haystack, i, needle, m, &RabinKarp_comp))
             {
                 printf("\033[36mFound substring at index\033[0m \033[1m%d\033[0m\n", i);
             }
@@ -78,12 +73,16 @@ int RabinKarp(char *haystack, char *needle, int q)
             hash_haystack = hash_string(haystack, i + 1, i + m, q);
         }
     }
+    printf("\033[35mTotal comparisons in RabinKarp: %d\033[0m\n", RabinKarp_comp);
     return -1;
 }
 
 int main()
-{  
-    int q=7;
+{
+    int q[10] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29};
     direct_search(initial_string, initial_substring);
-    RabinKarp(initial_string, initial_substring, q);
+    for (int i = 0; i < 10; i++)
+    {
+        RabinKarp(initial_string, initial_substring, q[i]);
+    }
 }
