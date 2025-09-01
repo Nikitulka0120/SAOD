@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-char initial_string[] = "justregulartextjustfindinthistextjustworditsjustaword";
-char initial_substring[] = "just";
+char initial_string[] = "The quick brown fox jumps over the lazy dog. This sentence is often used for typing practice. The substring we need to include is Xy7fG!pQ. It must appear several times within this text block. For instance, here it is again: Xy7fG!pQ. The primary goal is to achieve a precise size of one kilobyte, which equals 1024 characters including all letters, spaces, and punctuation. This requires careful calculation and padding at the end. Let's continue writing to add more content and length. The substring Xy7fG!pQ should be seamlessly integrated into the flow. Imagine a world where every document was exactly the size you needed. That would be efficient, wouldn't it? Here is the substring once more: Xy7fG!pQ. We are getting closer to the target character count. Almost there. Just a few more words to ensure we hit the exact mark. This is the final sentence, tailored to reach precisely 1024 characters. Xy7fG!pQ Done.Our secret code Xy7fG!pQ was hidden in the ancient manuscript, waiting for centuries to be discovered by.";
+char initial_substring[] = "Xy7fG!pQ";
 
 bool compare(const char *haystack, int start, const char *needle, int m, int *comp)
 {
