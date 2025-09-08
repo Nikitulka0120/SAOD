@@ -123,17 +123,17 @@ float AverageHeight(Vertex* root) {
 
 int main()
 {
-    Vertex *root = create_vertex(1);
-    Vertex *Vertex2 = add_to_left(root, 2);
+    Vertex *root = create_vertex(17);
+    Vertex *Vertex2 = add_to_left(root, 6);
     Vertex *Vertex3 = add_to_right(Vertex2, 3);
-    Vertex *Vertex4 = add_to_left(Vertex3, 4);
-    Vertex *Vertex5 = add_to_right(Vertex4, 5);
-    add_to_left(Vertex5, 6);
-    printf("Результат обхода сверху вниз:");
+    Vertex *Vertex4 = add_to_left(Vertex3, 19);
+    Vertex *Vertex5 = add_to_right(Vertex4, 8);
+    add_to_left(Vertex5, 11);
+    printf("Результат обхода сверху вниз: ");
     Top_to_bot(root);
-    printf("\nРезультат слева направо:");
+    printf("\nРезультат слева направо: ");
     Left_to_right(root);
-    printf("\nРезультат обхода снизу вверх:");
+    printf("\nРезультат обхода снизу вверх: ");
     Bot_to_top(root);
     printf("\nРазмер дерева: %d", Size(root));
     printf("\nКонтрольная сумма дерева: %d", CheckSum(root));
