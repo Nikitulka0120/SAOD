@@ -333,14 +333,13 @@ int main()
     fillQ(&head, &tail, allRecords);
     MergeSort(&head);
     tData *current = head;
-    record *sortedRecords = malloc(records_count * sizeof(record));
     for (int i = 0; i < records_count && current != NULL; i++)
     {
-        sortedRecords[i] = *(current->data);
+        allRecords[i] = *(current->data);
         current = current->next;
     }
     clear(head);
-    navigatePages(sortedRecords, N);
+    navigatePages(allRecords, N);
 
     fclose(fp);
     return 0;
