@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <locale.h>
 #define N 4000
 #define RECORDS_ON_PAGE 20
 
@@ -257,19 +256,22 @@ void navigatePages(record *allRecords, int records_count)
         system("chcp 65001 > nul");
         printf("Страница: %d/%d. Записи с %d по %d из %d.\n",
                current_page + 1, pages_count, pageStart + 1, pageEnd, records_count);
-        printf("%-32s %-18s %-6s %-6s %-10s\n",
+        printf("----------------------------------------------------------------------------------------\n");
+        printf("|%-35s | %-23s | %-9hs | %-6hs | %-14s|\n",
                "ФИО", "Улица", "Дом", "Квартира", "Дата");
-        printf("-------------------------------------------------------------------------------\n");
+        printf("----------------------------------------------------------------------------------------\n");
         system("chcp 866 > nul");
         for (int i = pageStart; i < pageEnd; i++)
         {
-            printf("%-32s %-18s %-6hd %-6hd %-10s\n",
+            printf("|%-32s | %-18s | %-6hd | %-8hd | %-10s|\n",
                    allRecords[i].FIO,
                    allRecords[i].street,
                    allRecords[i].House_number,
                    allRecords[i].Apartment_number,
                    allRecords[i].Date);
+            
         }
+        printf("----------------------------------------------------------------------------------------\n");
         system("chcp 65001 > nul");
         printf("\nУправление: 1 - предыдущая, 2 - следующая, 3 - вернутся в начало, 4 - перейти в конец, 0 - выход (показать отсортированный список)\n");
         printf("Введите команду: ");
