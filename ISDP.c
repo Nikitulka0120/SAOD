@@ -11,13 +11,40 @@ typedef struct Vertex
     struct Vertex *Right;
 } Vertex;
 
-void Left_to_right(Vertex *p)
+Vertex *create_vertex(int data)
+{
+    Vertex *newVertex = (Vertex *)malloc(sizeof(Vertex));
+    newVertex->Data = data;
+    newVertex->Left = NULL;
+    newVertex->Right = NULL;
+    return newVertex;
+}
+
+Vertex *NumericTree(int N_vertex, int n)
+{
+    if (N_vertex > n)
+        return NULL;
+    Vertex *root = create_vertex(N_vertex);
+    if (2 * N_vertex <= n)
+    {
+        root->Left = NumericTree(2 * N_vertex, n);
+    }
+
+    if (2 * N_vertex + 1 <= n)
+    {
+        root->Right = NumericTree(2 * N_vertex + 1, n);
+    }
+
+    return root;
+}
+
+void Left_to_Right(Vertex *p)
 {
     if (p != NULL)
     {
-        Left_to_right(p->Left);
+        Left_to_Right(p->Left);
         printf("%d ", p->Data);
-        Left_to_right(p->Right);
+        Left_to_Right(p->Right);
     }
 }
 
@@ -80,9 +107,9 @@ int Height(Vertex *p)
     }
     else
     {
-        int leftHeight = Height(p->Left);
-        int rightHeight = Height(p->Right);
-        return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
+        int LeftHeight = Height(p->Left);
+        int RightHeight = Height(p->Right);
+        return 1 + (LeftHeight > RightHeight ? LeftHeight : RightHeight);
     }
 }
 
@@ -136,16 +163,33 @@ Vertex *BuildISDP(int L, int R, int A[])
     }
 }
 
+void PrintTree(Vertex *p, int level) {
+    if (!p) return;
+    PrintTree(p->Right, level + 1);
+    printf("%*s%d\n", level * 4, "", p->Data);
+    PrintTree(p->Left, level + 1);
+}
+
 int main()
 {
     system("chcp 65001 > nul");
     int A[N];
     FillInc(N, A);
-    Vertex *root= BuildISDP(0, 99, A);
+    Vertex *root = BuildISDP(0, 99, A);
     printf("Обход дерева:\n");
-    Left_to_right(root);
-    printf("\nРазмер дерева: %d\n",Size(root));
-    printf("Контрольная сумма: %d\n",CheckSum(root));
-    printf("Высота дерева %d\n",Height(root));
+    Left_to_Right(root);
+    printf("\nРазмер дерева: %d\n", Size(root));
+    printf("Контрольная сумма: %d\n", CheckSum(root));
+    printf("Высота дерева %d\n", Height(root));
     printf("Средняя высота дерева: %.2f\n", AverageHeight(root));
+    printf("\n\nЗаполнение дерева по порядку\n");
+    PrintTree(root, 0);
+    root = NumericTree(1, 100);
+    printf("Обход дерева:\n");
+    Left_to_Right(root);
+    printf("\nРазмер дерева: %d\n", Size(root));
+    printf("Контрольная сумма: %d\n", CheckSum(root));
+    printf("Высота дерева %d\n", Height(root));
+    printf("Средняя высота дерева: %.2f\n", AverageHeight(root));
+    PrintTree(root, 0);
 }
