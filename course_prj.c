@@ -56,35 +56,51 @@ typedef struct
 
 int less(const record *a, const record *b)
 {
-
     char fio_a[32], fio_b[32];
-    strcpy(fio_a, a->FIO);
-    strcpy(fio_b, b->FIO);
-    
-    for (int i = 0; fio_a[i]; i++) fio_a[i] = tolower(fio_a[i]);
-    for (int i = 0; fio_b[i]; i++) fio_b[i] = tolower(fio_b[i]);
-    
+    strncpy(fio_a, a->FIO, sizeof(fio_a) - 1);
+    fio_a[sizeof(fio_a) - 1] = '\0';
+    strncpy(fio_b, b->FIO, sizeof(fio_b) - 1);
+    fio_b[sizeof(fio_b) - 1] = '\0';
+
+    for (int i = 0; fio_a[i]; i++)
+        fio_a[i] = tolower((unsigned char)fio_a[i]);
+    for (int i = 0; fio_b[i]; i++)
+        fio_b[i] = tolower((unsigned char)fio_b[i]);
+
     int fio_cmp = strcmp(fio_a, fio_b);
-    if (fio_cmp < 0) {
+    if (fio_cmp < 0)
+    {
         return 1;
-    } else if (fio_cmp > 0) {
+    }
+    else if (fio_cmp > 0)
+    {
         return 0;
     }
-    
+
     char street_a[18], street_b[18];
-    strcpy(street_a, a->street);
-    strcpy(street_b, b->street);
-    
-    for (int i = 0; street_a[i]; i++) street_a[i] = tolower(street_a[i]);
-    for (int i = 0; street_b[i]; i++) street_b[i] = tolower(street_b[i]);
-    
+    strncpy(street_a, a->street, sizeof(street_a) - 1);
+    street_a[sizeof(street_a) - 1] = '\0';
+    strncpy(street_b, b->street, sizeof(street_b) - 1);
+    street_b[sizeof(street_b) - 1] = '\0';
+
+    for (int i = 0; street_a[i]; i++)
+        street_a[i] = tolower((unsigned char)street_a[i]);
+    for (int i = 0; street_b[i]; i++)
+        street_b[i] = tolower((unsigned char)street_b[i]);
+
     int street_cmp = strcmp(street_a, street_b);
-    if (street_cmp < 0) {
+    if (street_cmp < 0)
+    {
         return 1;
-    } else {
+    }
+    else if (street_cmp > 0)
+    {
         return 0;
     }
+
+    return 0;
 }
+
 void InitializeQueue(tQueue *q)
 {
     q->head = q->tail = NULL;
@@ -329,13 +345,14 @@ int main()
     fillQ(&head, &tail, allRecords);
     MergeSort(&head);
     tData *current = head;
+    record *sortedRecords = malloc(records_count * sizeof(record));
     for (int i = 0; i < records_count && current != NULL; i++)
     {
-        allRecords[i] = *(current->data);
+        sortedRecords[i] = *(current->data);
         current = current->next;
     }
     clear(head);
-    navigatePages(allRecords, N);
+    navigatePages(sortedRecords, N);
 
     fclose(fp);
     return 0;
