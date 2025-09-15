@@ -56,36 +56,32 @@ typedef struct
 
 int less(const record *a, const record *b)
 {
-    char surname_a[4] = {0}, surname_b[4] = {0};
-    for (int i = 0; i < 3; i++)
-    {
-        surname_a[i] = tolower(a->FIO[i]);
-        surname_b[i] = tolower(b->FIO[i]);
-    }
-    int surname_cmp = strncmp(surname_a, surname_b, 3);
-    if (surname_cmp < 0)
-    {
+
+    char fio_a[32], fio_b[32];
+    strcpy(fio_a, a->FIO);
+    strcpy(fio_b, b->FIO);
+    
+    for (int i = 0; fio_a[i]; i++) fio_a[i] = tolower(fio_a[i]);
+    for (int i = 0; fio_b[i]; i++) fio_b[i] = tolower(fio_b[i]);
+    
+    int fio_cmp = strcmp(fio_a, fio_b);
+    if (fio_cmp < 0) {
         return 1;
-    }
-    else if (surname_cmp > 0)
-    {
+    } else if (fio_cmp > 0) {
         return 0;
     }
-    char street_a[64], street_b[64];
+    
+    char street_a[18], street_b[18];
     strcpy(street_a, a->street);
     strcpy(street_b, b->street);
-
-    for (int i = 0; street_a[i]; i++)
-        street_a[i] = tolower(street_a[i]);
-    for (int i = 0; street_b[i]; i++)
-        street_b[i] = tolower(street_b[i]);
+    
+    for (int i = 0; street_a[i]; i++) street_a[i] = tolower(street_a[i]);
+    for (int i = 0; street_b[i]; i++) street_b[i] = tolower(street_b[i]);
+    
     int street_cmp = strcmp(street_a, street_b);
-    if (street_cmp < 0)
-    {
+    if (street_cmp < 0) {
         return 1;
-    }
-    else
-    {
+    } else {
         return 0;
     }
 }
