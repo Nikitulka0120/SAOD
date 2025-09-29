@@ -11,6 +11,16 @@ typedef struct Vertex
     struct Vertex *Right;
 } Vertex;
 
+void Top_to_bot(Vertex *p)
+{
+    if (p != NULL)
+    {
+        printf("%d ", p->Data);
+        Top_to_bot(p->Left);
+        Top_to_bot(p->Right);
+    }
+}
+
 void Left_to_Right(Vertex *p)
 {
     if (p != NULL)
@@ -111,12 +121,14 @@ int delete_SDP(Vertex **p, int Data)
     {
         Vertex *r = q->Left;
         Vertex *s = q;
-        if(r->Right == NULL){
+        if (r->Right == NULL)
+        {
             r->Right = q->Right;
             *p = r;
         }
-        else{
-            while (r->Right!=NULL)
+        else
+        {
+            while (r->Right != NULL)
             {
                 s = r;
                 r = r->Right;
@@ -143,6 +155,10 @@ int main()
     {
         add_DoubleSDP(&SDPRoot, initial[i]);
     }
+
+    printf("Исходное дерево поиска (обход сверху вниз):\n");
+    Top_to_bot(SDPRoot);
+    printf("\n");
 
     printf("Исходное дерево поиска (обход слева направо):\n");
     Left_to_Right(SDPRoot);
@@ -171,7 +187,8 @@ int main()
                 printf("Элемент %d не найден в дереве.\n", toDelete);
             }
         }
-        else{
+        else
+        {
             printf("Размер дерева не позволяет продолжить дальнейшее удаление!");
             break;
         }
