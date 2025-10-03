@@ -61,12 +61,6 @@ int less(const record *a, const record *b)
     fio_a[sizeof(fio_a) - 1] = '\0';
     strncpy(fio_b, b->FIO, sizeof(fio_b) - 1);
     fio_b[sizeof(fio_b) - 1] = '\0';
-
-    for (int i = 0; fio_a[i]; i++)
-        fio_a[i] = tolower((unsigned char)fio_a[i]);
-    for (int i = 0; fio_b[i]; i++)
-        fio_b[i] = tolower((unsigned char)fio_b[i]);
-
     int fio_cmp = strcmp(fio_a, fio_b);
     if (fio_cmp < 0)
     {
@@ -82,12 +76,6 @@ int less(const record *a, const record *b)
     street_a[sizeof(street_a) - 1] = '\0';
     strncpy(street_b, b->street, sizeof(street_b) - 1);
     street_b[sizeof(street_b) - 1] = '\0';
-
-    for (int i = 0; street_a[i]; i++)
-        street_a[i] = tolower((unsigned char)street_a[i]);
-    for (int i = 0; street_b[i]; i++)
-        street_b[i] = tolower((unsigned char)street_b[i]);
-
     int street_cmp = strcmp(street_a, street_b);
     if (street_cmp < 0)
     {
@@ -235,7 +223,35 @@ void MergeSort(tData **S)
     *S = c[0].head;
 }
 
-typedef record* (*GetRecordFunc)(int index, void *source);
+typedef record *(*GetRecordFunc)(int index, void *source);
+
+int findPage(int pages_count){
+    int input;
+    printf("Введите номер страницы на которую желаеете перейти:");
+    
+    do{
+        scanf("%d", &input);
+        if (input<1 || input>pages_count){
+            printf ("Введите действительный диапазон от 1 до %d:", pages_count);
+        }
+        else break;
+    }while (1);
+    return input-1;
+}
+
+int findRecord(int records_on_page,int records_count){
+    int input;
+    printf("Введите номер записи на которую желаеете перейти:");
+    
+    do{
+        scanf("%d", &input);
+        if (input<1 || input>records_count){
+            printf ("Введите действительный диапазон от 1 до %d:", records_count);
+        }
+        else break;
+    }while (1);
+    return input/records_on_page;
+}
 
 void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, const char *title)
 {
@@ -278,14 +294,15 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
         for (int i = pageStart; i < pageEnd; i++)
         {
             record *r = getRecord(i, source);
-            if (!r) continue;
+            if (!r)
+                continue;
             printf("| %-4d | %-32s | %-18s | %-6hd | %-8hd | %-10s |\n",
                    i + 1, r->FIO, r->street, r->House_number, r->Apartment_number, r->Date);
         }
 
         printf("-------------------------------------------------------------------------------------------------\n");
         system("chcp 65001 > nul");
-        printf("\nУправление: 1 - предыдущая, 2 - следующая, 3 - начало, 4 - конец, 0 - выход\n");
+        printf("\nУправление: \n1 - предыдущая, \n2 - следующая, \n3 - начало, \n4 - конец, \n5 - перейти на страницу, \n6 - перейти к записи \n0 - выход (перейти к следующему этапу)\n");
         printf("Введите команду: ");
         scanf("%d", &input);
 
@@ -297,27 +314,31 @@ void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, c
             current_page = 0;
         else if (input == 4)
             current_page = pages_count - 1;
+        else if (input == 5)
+            current_page = findPage(pages_count);
+        else if (input == 6)
+            current_page = findRecord(RECORDS_ON_PAGE, records_count);
         else if (input == 0)
             break;
 
     } while (1);
 }
 
-record* getRecordFromArray(int index, void *source)
+record *getRecordFromArray(int index, void *source)
 {
-    record *arr = (record*)source;
+    record *arr = (record *)source;
     return &arr[index];
 }
 
-record* getRecordFromPtrArray(int index, void *source)
+record *getRecordFromPtrArray(int index, void *source)
 {
-    record **arr = (record**)source;
+    record **arr = (record **)source;
     return arr[index];
 }
 
-record* getRecordFromQueue(int index, void *source)
+record *getRecordFromQueue(int index, void *source)
 {
-    tData *cur = (tData*)source;
+    tData *cur = (tData *)source;
     for (int i = 0; i < index && cur; i++)
         cur = cur->next;
     return cur ? cur->data : NULL;
@@ -411,8 +432,15 @@ int main()
     } while (1);
     tData *SearchHead = NULL;
     tData *SearchTail = NULL;
+    int search_count = 0;
     BinarySearchAndFill(N, sortedPointers, SearchKey, &SearchHead, &SearchTail);
-    paginateRecords(SearchHead, records_count, getRecordFromQueue, "РЕЗУЛЬТАТЫ ПОИСКА");
+    tData *tmp = SearchHead;
+    while (tmp)
+    {
+        search_count++;
+        tmp = tmp->next;
+    }
+    paginateRecords(SearchHead, search_count, getRecordFromQueue, "РЕЗУЛЬТАТЫ ПОИСКА");
     free(sortedPointers);
     free(allRecords);
     fclose(fp);
