@@ -235,8 +235,18 @@ void MergeSort(tData **S)
     *S = c[0].head;
 }
 
-void navigatePages(record *allRecords, int records_count)
+typedef record* (*GetRecordFunc)(int index, void *source);
+
+void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, const char *title)
 {
+    if (records_count == 0)
+    {
+        system("chcp 65001 > nul");
+        printf("%s\n", title);
+        printf("Нет данных для отображения.\n");
+        return;
+    }
+
     int current_page = 0;
     int input;
 
@@ -244,77 +254,73 @@ void navigatePages(record *allRecords, int records_count)
     {
         system("cls");
 
-        int pages_count = records_count / RECORDS_ON_PAGE;
-        if (records_count % RECORDS_ON_PAGE != 0)
-        {
-            pages_count++;
-        }
-
+        int pages_count = (records_count + RECORDS_ON_PAGE - 1) / RECORDS_ON_PAGE;
         if (current_page >= pages_count)
-        {
             current_page = pages_count - 1;
-        }
         if (current_page < 0)
-        {
             current_page = 0;
-        }
 
         int pageStart = current_page * RECORDS_ON_PAGE;
         int pageEnd = pageStart + RECORDS_ON_PAGE;
         if (pageEnd > records_count)
-        {
             pageEnd = records_count;
-        }
+
         system("chcp 65001 > nul");
+        printf("%s\n", title);
         printf("Страница: %d/%d. Записи с %d по %d из %d.\n",
                current_page + 1, pages_count, pageStart + 1, pageEnd, records_count);
-        printf("----------------------------------------------------------------------------------------\n");
-        printf("|%-35s | %-23s | %-9hs | %-6hs | %-14s|\n",
-               "ФИО", "Улица", "Дом", "Квартира", "Дата");
-        printf("----------------------------------------------------------------------------------------\n");
+        printf("-------------------------------------------------------------------------------------------------\n");
+        printf("| %-6s | %-35s | %-23s | %-9s | %-8s | %-14s |\n",
+               "№", "ФИО", "Улица", "Дом", "Квартира", "Дата");
+        printf("-------------------------------------------------------------------------------------------------\n");
         system("chcp 866 > nul");
+
         for (int i = pageStart; i < pageEnd; i++)
         {
-            printf("|%-32s | %-18s | %-6hd | %-8hd | %-10s|\n",
-                   allRecords[i].FIO,
-                   allRecords[i].street,
-                   allRecords[i].House_number,
-                   allRecords[i].Apartment_number,
-                   allRecords[i].Date);
-            
+            record *r = getRecord(i, source);
+            if (!r) continue;
+            printf("| %-4d | %-32s | %-18s | %-6hd | %-8hd | %-10s |\n",
+                   i + 1, r->FIO, r->street, r->House_number, r->Apartment_number, r->Date);
         }
-        printf("----------------------------------------------------------------------------------------\n");
-        system("chcp 65001 > nul");
-        printf("\nУправление: 1 - предыдущая, 2 - следующая, 3 - вернутся в начало, 4 - перейти в конец, 0 - выход (показать отсортированный список)\n");
-        printf("Введите команду: ");
 
+        printf("-------------------------------------------------------------------------------------------------\n");
+        system("chcp 65001 > nul");
+        printf("\nУправление: 1 - предыдущая, 2 - следующая, 3 - начало, 4 - конец, 0 - выход\n");
+        printf("Введите команду: ");
         scanf("%d", &input);
 
         if (input == 1 && current_page > 0)
-        {
             current_page--;
-        }
-        else if (input == 2)
-        {
-            if (current_page < pages_count - 1)
-            {
-                current_page++;
-            }
-        }
+        else if (input == 2 && current_page < pages_count - 1)
+            current_page++;
         else if (input == 3)
-        {
             current_page = 0;
-        }
         else if (input == 4)
-        {
-            current_page = pages_count;
-        }
+            current_page = pages_count - 1;
         else if (input == 0)
-        {
             break;
-        }
 
     } while (1);
+}
+
+record* getRecordFromArray(int index, void *source)
+{
+    record *arr = (record*)source;
+    return &arr[index];
+}
+
+record* getRecordFromPtrArray(int index, void *source)
+{
+    record **arr = (record**)source;
+    return arr[index];
+}
+
+record* getRecordFromQueue(int index, void *source)
+{
+    tData *cur = (tData*)source;
+    for (int i = 0; i < index && cur; i++)
+        cur = cur->next;
+    return cur ? cur->data : NULL;
 }
 
 void fillQ(tData **head, tData **tail, record *Records)
@@ -322,6 +328,35 @@ void fillQ(tData **head, tData **tail, record *Records)
     for (int i = 0; i < N; i++)
     {
         AddToQueue(head, tail, &Records[i]);
+    }
+}
+
+void BinarySearchAndFill(int n, record **records, const char *X, tData **head, tData **tail)
+{
+    int L = 0, R = n - 1;
+    int m;
+    while (L < R)
+    {
+        m = (L + R) / 2;
+        if (strncasecmp(records[m]->FIO, X, 3) < 0)
+        {
+            L = m + 1;
+        }
+        else
+        {
+            R = m;
+        }
+    }
+    if (R >= n || strncasecmp(records[R]->FIO, X, 3) != 0)
+    {
+        return;
+    }
+    int index = R;
+    int count = 0;
+    while (index < n && strncasecmp(records[index]->FIO, X, 3) == 0)
+    {
+        AddToQueue(head, tail, records[index]);
+        index++;
     }
 }
 
@@ -339,21 +374,47 @@ int main()
     int records_count = fread(allRecords, sizeof(record), 4000, fp);
 
     int current_page = 0;
-    navigatePages(allRecords, N);
+    paginateRecords(allRecords, records_count, getRecordFromArray, "ВСЕ ЗАПИСИ");
     tData *head = NULL;
     tData *tail = NULL;
     fillQ(&head, &tail, allRecords);
     MergeSort(&head);
     tData *current = head;
-    record *sortedRecords = malloc(records_count * sizeof(record));
+    record **sortedPointers = malloc(records_count * sizeof(record *));
+
     for (int i = 0; i < records_count && current != NULL; i++)
     {
-        sortedRecords[i] = *(current->data);
+        sortedPointers[i] = current->data;
         current = current->next;
     }
     clear(head);
-    navigatePages(sortedRecords, N);
+    paginateRecords(sortedPointers, records_count, getRecordFromPtrArray, "ОТСОРТИРОВАННЫЕ ЗАПИСИ");
+    tData *SearchQ = NULL;
+    char SearchKey[4];
+    int scnresult;
+    do
+    {
+        printf("Введите ровно 3 буквы фамилии для поиска (если символов будет больше 3х, остаток будет отброшен): ");
+        system("chcp 866 > nul");
+        scnresult = scanf("%3s", SearchKey);
+        system("chcp 65001 > nul");
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF)
+            ;
 
+        if (strlen(SearchKey) != 3)
+        {
+            printf("Введите именно 3 символа.\n");
+            continue;
+        }
+        break;
+    } while (1);
+    tData *SearchHead = NULL;
+    tData *SearchTail = NULL;
+    BinarySearchAndFill(N, sortedPointers, SearchKey, &SearchHead, &SearchTail);
+    paginateRecords(SearchHead, records_count, getRecordFromQueue, "РЕЗУЛЬТАТЫ ПОИСКА");
+    free(sortedPointers);
+    free(allRecords);
     fclose(fp);
     return 0;
 }
