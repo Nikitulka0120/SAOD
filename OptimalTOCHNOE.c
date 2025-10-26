@@ -154,7 +154,6 @@ int TotalWeight(Vertex *p)
     return p->weight + TotalWeight(p->Left) + TotalWeight(p->Right);
 }
 
-// Функция для вычисления суммы (вес * высота) для каждой вершины
 int WeightedPathSum(Vertex *p, int level)
 {
     if (p == NULL)
@@ -162,7 +161,6 @@ int WeightedPathSum(Vertex *p, int level)
     return (p->weight * level) + WeightedPathSum(p->Left, level + 1) + WeightedPathSum(p->Right, level + 1);
 }
 
-// Средневзвешенная высота по формуле: C_cp = (W1*h1 + W2*h2 + ... + Wn*hn) / W
 float WeightedAverageHeight(Vertex *root)
 {
     if (root == NULL)
