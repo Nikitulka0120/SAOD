@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 #define N 4000
 #define RECORDS_ON_PAGE 20
 
@@ -19,6 +20,122 @@ typedef struct tData
     struct tData *next;
     record *data;
 } tData;
+
+typedef struct Vertex
+{
+    record *data;
+    struct Vertex *Left;
+    struct Vertex *Right;
+} Vertex;
+
+Vertex *AddVertex(Vertex *root, record *data)
+{
+    if (root == NULL)
+    {
+        root = (Vertex *)malloc(sizeof(Vertex));
+        root->data = data;
+        root->Left = root->Right = NULL;
+    }
+    else if (data->House_number < root->data->House_number)
+    {
+        root->Left = AddVertex(root->Left, data);
+    }
+    else
+    {
+        root->Right = AddVertex(root->Right, data);
+    }
+    return root;
+}
+
+Vertex *BuildTree(record *records[], int n)
+{
+    Vertex *Root = NULL;
+    bool used[N] = {false};
+
+    for (int i = 0; i < n; i++)
+    {
+        int max_weight = -1;
+        int max_index = -1;
+
+        for (int j = 0; j < n; j++)
+        {
+            if (!used[j] && records[j]->House_number > max_weight)
+            {
+                max_weight = records[j]->House_number;
+                max_index = j;
+            }
+        }
+
+        if (max_index != -1)
+        {
+            used[max_index] = true;
+            Root = AddVertex(Root, records[max_index]);
+        }
+    }
+
+    return Root;
+}
+
+void PrintTreeRow(int index, record *r)
+{
+    system("chcp 866 > nul");
+    printf("| %-6d | %-32s | %-18s | %-6hd | %-8hd | %-10s |\n",
+           index, r->FIO, r->street, r->House_number, r->Apartment_number, r->Date);
+}
+
+void PrintTree(Vertex *root, int *index)
+{
+    if (root == NULL)
+        return;
+
+    PrintTree(root->Left, index);
+    (*index)++;
+    PrintTreeRow(*index, root->data);
+    PrintTree(root->Right, index);
+}
+
+void PrintTreeAsTable(Vertex *root, const char *title)
+{
+    printf("%s\n", title);
+    printf("---------------------------------------------------------------------------------------------------\n");
+    printf("| %-7s | %-35s | %-23s | %-9s | %-8s | %-14s |\n",
+           "№", "ФИО", "Улица", "Дом", "Квартира", "Дата");
+    printf("---------------------------------------------------------------------------------------------------\n");
+
+    int index = 0;
+    PrintTree(root, &index);
+
+    printf("---------------------------------------------------------------------------------------------------\n");
+}
+
+void SearchInTree(Vertex *root, int key, int foundCounter)
+{
+    if (root == NULL)
+        printf("-------------------------------------------------------------------------------------------------\n");
+    if (key == root->data->House_number)
+    {
+        system("chcp 866 > nul");
+        printf("| %-4d | %-32s | %-18s | %-6hd | %-8hd | %-10s |\n",
+               foundCounter, root->data->FIO, root->data->street, root->data->House_number, root->data->Apartment_number, root->data->Date);
+        foundCounter++;
+        SearchInTree(root->Right, key, foundCounter);
+    }
+
+    if (key < root->data->House_number)
+        SearchInTree(root->Left, key, foundCounter);
+    else
+        SearchInTree(root->Right, key, foundCounter);
+}
+
+void FreeTree(Vertex *root)
+{
+    if (root)
+    {
+        FreeTree(root->Left);
+        FreeTree(root->Right);
+        free(root);
+    }
+}
 
 void AddToQueue(tData **head, tData **tail, record *data)
 {
@@ -225,32 +342,40 @@ void MergeSort(tData **S)
 
 typedef record *(*GetRecordFunc)(int index, void *source);
 
-int findPage(int pages_count){
+int findPage(int pages_count)
+{
     int input;
     printf("Введите номер страницы на которую желаеете перейти:");
-    
-    do{
+
+    do
+    {
         scanf("%d", &input);
-        if (input<1 || input>pages_count){
-            printf ("Введите действительный диапазон от 1 до %d:", pages_count);
+        if (input < 1 || input > pages_count)
+        {
+            printf("Введите действительный диапазон от 1 до %d:", pages_count);
         }
-        else break;
-    }while (1);
-    return input-1;
+        else
+            break;
+    } while (1);
+    return input - 1;
 }
 
-int findRecord(int records_on_page,int records_count){
+int findRecord(int records_on_page, int records_count)
+{
     int input;
     printf("Введите номер записи на которую желаеете перейти:");
-    
-    do{
+
+    do
+    {
         scanf("%d", &input);
-        if (input<1 || input>records_count){
-            printf ("Введите действительный диапазон от 1 до %d:", records_count);
+        if (input < 1 || input > records_count)
+        {
+            printf("Введите действительный диапазон от 1 до %d:", records_count);
         }
-        else break;
-    }while (1);
-    return input/records_on_page;
+        else
+            break;
+    } while (1);
+    return input / records_on_page;
 }
 
 void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, const char *title)
@@ -441,6 +566,26 @@ int main()
         tmp = tmp->next;
     }
     paginateRecords(SearchHead, search_count, getRecordFromQueue, "РЕЗУЛЬТАТЫ ПОИСКА");
+    if (search_count > 0)
+    {
+        system("cls");
+        Vertex *TreeRoot = BuildTree(sortedPointers, search_count);
+        PrintTreeAsTable(TreeRoot, "ДЕРЕВО ПО НОМЕРУ ДОМА (Обход ->)");
+
+        int key;
+        system("chcp 65001 > nul");
+        printf("\nВведите номер дома для поиска: ");
+        scanf("%d", &key);
+        printf("-------------------------------------------------------------------------------------------------\n");
+        printf("| %-7s | %-35s | %-23s | %-9s | %-8s | %-14s |\n",
+               "№", "ФИО", "Улица", "Дом", "Квартира", "Дата");
+        printf("-------------------------------------------------------------------------------------------------\n");
+        SearchInTree(TreeRoot, key, 1);
+        system("chcp 65001 > nul");
+
+        FreeTree(TreeRoot);
+    }
+
     free(sortedPointers);
     free(allRecords);
     fclose(fp);
