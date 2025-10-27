@@ -47,21 +47,31 @@ Vertex *AddVertex(Vertex *root, record *data)
     return root;
 }
 
-Vertex *BuildTree(record *records[], int n)
+Vertex *BuildTree(tData *head)
 {
     Vertex *Root = NULL;
+    tData *cur_i, *cur_j;
     bool used[N] = {false};
+    int n = 0;
 
-    for (int i = 0; i < n; i++)
+    for (cur_i = head; cur_i != NULL; cur_i = cur_i->next)
+        n++;
+
+    record *arr[n];
+    int i = 0;
+    for (cur_i = head; cur_i != NULL; cur_i = cur_i->next)
+        arr[i++] = cur_i->data;
+
+    for (i = 0; i < n; i++)
     {
         int max_weight = -1;
         int max_index = -1;
 
         for (int j = 0; j < n; j++)
         {
-            if (!used[j] && records[j]->House_number > max_weight)
+            if (!used[j] && arr[j]->House_number > max_weight)
             {
-                max_weight = records[j]->House_number;
+                max_weight = arr[j]->House_number;
                 max_index = j;
             }
         }
@@ -69,7 +79,7 @@ Vertex *BuildTree(record *records[], int n)
         if (max_index != -1)
         {
             used[max_index] = true;
-            Root = AddVertex(Root, records[max_index]);
+            Root = AddVertex(Root, arr[max_index]);
         }
     }
 
@@ -569,7 +579,7 @@ int main()
     if (search_count > 0)
     {
         system("cls");
-        Vertex *TreeRoot = BuildTree(sortedPointers, search_count);
+        Vertex *TreeRoot = BuildTree(SearchHead);
         PrintTreeAsTable(TreeRoot, "ДЕРЕВО ПО НОМЕРУ ДОМА (Обход ->)");
 
         int key;
@@ -585,7 +595,7 @@ int main()
 
         FreeTree(TreeRoot);
     }
-
+    clear(SearchHead);
     free(sortedPointers);
     free(allRecords);
     fclose(fp);
