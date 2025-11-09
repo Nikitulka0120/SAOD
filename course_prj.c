@@ -4,182 +4,176 @@
 #include <ctype.h>
 #include <stdbool.h>
 #define N 4000
-#define RECORDS_ON_PAGE 20
+#define RecordsOnPage 20
 
 typedef struct record
 {
     char FIO[32];
-    char street[18];
-    short int House_number;
-    short int Apartment_number;
+    char Street[18];
+    short int HouseNumber;
+    short int ApartmentNumber;
     char Date[10];
 } record;
 
 typedef struct tData
 {
-    struct tData *next;
-    record *data;
+    struct tData *Next;
+    record *Data;
 } tData;
 
 typedef struct Vertex
 {
-    record *data;
+    int Weight;
+    bool Used;
+    record *Data;
     struct Vertex *Left;
     struct Vertex *Right;
 } Vertex;
 
-Vertex *AddVertex(Vertex *root, record *data)
+typedef struct tQueue
 {
-    if (root == NULL)
-    {
-        root = (Vertex *)malloc(sizeof(Vertex));
-        root->data = data;
-        root->Left = root->Right = NULL;
-    }
-    else if (data->House_number < root->data->House_number)
-    {
-        root->Left = AddVertex(root->Left, data);
-    }
-    else
-    {
-        root->Right = AddVertex(root->Right, data);
-    }
-    return root;
+    tData *Head;
+    tData *Tail;
+} tQueue;
+
+int findPage(int pagesCount)
+{
+    int input;
+    printf("Введите номер страницы на которую желеете перейти:");
+    do
+    {scanf("%d", &input);
+        if (input<1 || input>pagesCount)
+        {
+            printf("Введите действительный диапазон от 1 до %d:",pagesCount);
+        }
+        else
+            break;
+    } while(1);
+    return input-1;
 }
 
-Vertex *BuildTree(tData *head)
+int countQueue(tData *head)
 {
-    Vertex *Root = NULL;
-    tData *cur_i, *cur_j;
-    bool used[N] = {false};
-    int n = 0;
-
-    for (cur_i = head; cur_i != NULL; cur_i = cur_i->next)
-        n++;
-
-    record *arr[n];
-    int i = 0;
-    for (cur_i = head; cur_i != NULL; cur_i = cur_i->next)
-        arr[i++] = cur_i->data;
-
-    for (i = 0; i < n; i++)
+    int count = 0;
+    tData *current = head;
+    while (current != NULL)
     {
-        int max_weight = -1;
-        int max_index = -1;
-
-        for (int j = 0; j < n; j++)
-        {
-            if (!used[j] && arr[j]->House_number > max_weight)
-            {
-                max_weight = arr[j]->House_number;
-                max_index = j;
-            }
-        }
-
-        if (max_index != -1)
-        {
-            used[max_index] = true;
-            Root = AddVertex(Root, arr[max_index]);
-        }
+        count++;
+        current = current->Next;
     }
-
-    return Root;
+    return count;
 }
 
-void PrintTreeRow(int index, record *r)
+void PrintTableHeader()
+{
+    system("chcp 65001 > nul");
+    printf("---------------------------------------------------------------------------------------------------\n");
+    printf("| %-8s | %-35s | %-23s | %-9s | %-8s | %-14s |\n",
+           "№", "ФИО", "Улица", "Дом", "Квартира", "Дата");
+    printf("---------------------------------------------------------------------------------------------------\n");
+}
+
+void PrintRow(int index, record *r)
 {
     system("chcp 866 > nul");
     printf("| %-6d | %-32s | %-18s | %-6hd | %-8hd | %-10s |\n",
-           index, r->FIO, r->street, r->House_number, r->Apartment_number, r->Date);
+           index + 1, r->FIO, r->Street, r->HouseNumber, r->ApartmentNumber, r->Date);
 }
 
-void PrintTree(Vertex *root, int *index)
+int findRecord(int recordsOnPage, int recordsCount)
 {
-    if (root == NULL)
-        return;
-
-    PrintTree(root->Left, index);
-    (*index)++;
-    PrintTreeRow(*index, root->data);
-    PrintTree(root->Right, index);
-}
-
-void PrintTreeAsTable(Vertex *root, const char *title)
-{
-    printf("%s\n", title);
-    printf("---------------------------------------------------------------------------------------------------\n");
-    printf("| %-7s | %-35s | %-23s | %-9s | %-8s | %-14s |\n",
-           "№", "ФИО", "Улица", "Дом", "Квартира", "Дата");
-    printf("---------------------------------------------------------------------------------------------------\n");
-
-    int index = 0;
-    PrintTree(root, &index);
-
-    printf("---------------------------------------------------------------------------------------------------\n");
-}
-
-void SearchInTree(Vertex *root, int key, int foundCounter)
-{
-    if (root == NULL)
-        printf("-------------------------------------------------------------------------------------------------\n");
-    if (key == root->data->House_number)
+    int input;
+    printf("Введите номер записи на которую желаеете перейти:");
+    do
     {
-        system("chcp 866 > nul");
-        printf("| %-4d | %-32s | %-18s | %-6hd | %-8hd | %-10s |\n",
-               foundCounter, root->data->FIO, root->data->street, root->data->House_number, root->data->Apartment_number, root->data->Date);
-        foundCounter++;
-        SearchInTree(root->Right, key, foundCounter);
-    }
-
-    if (key < root->data->House_number)
-        SearchInTree(root->Left, key, foundCounter);
-    else
-        SearchInTree(root->Right, key, foundCounter);
-}
-
-void FreeTree(Vertex *root)
-{
-    if (root)
-    {
-        FreeTree(root->Left);
-        FreeTree(root->Right);
-        free(root);
-    }
+        scanf("%d", &input);
+        if (input<1 || input>recordsCount)
+        {
+            printf("Введите действительный диапазон от 1 до %d:",recordsCount);
+        }
+        else
+            break;
+    } while(1);
+    return input/RecordsOnPage;
 }
 
 void AddToQueue(tData **head, tData **tail, record *data)
 {
     tData *p = (tData *)malloc(sizeof(tData));
-    p->data = data;
-    p->next = NULL;
+    p->Data =data;
+    p->Next= NULL;
 
-    if (*tail == NULL)
+    if (*tail==NULL)
     {
-        *head = *tail = p;
+        *head=*tail= p;
     }
     else
     {
-        (*tail)->next = p;
+        (*tail)->Next =p;
         *tail = p;
     }
 }
 
-void clear(tData *head)
+void InitializeQueue(tQueue *q)
 {
-    tData *p = head;
-    while (p != NULL)
-    {
-        tData *temp_p = p;
-        p = p->next;
-        free(temp_p);
-    }
+    q->Head=q->Tail= NULL;
 }
 
-typedef struct
+void printPages(tData *head, const char *title)
 {
-    tData *head;
-    tData *tail;
-} tQueue;
+    int recordsCount =countQueue(head);
+    int currentPage = 0;
+    int input;
+    do
+    {
+        system("cls");
+        int pagesCount = (recordsCount + RecordsOnPage - 1) / RecordsOnPage;
+        if (currentPage>=pagesCount)
+            currentPage=pagesCount-1;
+        if (currentPage<0)
+            currentPage=0;
+        int pageStart=currentPage * RecordsOnPage;
+        int pageEnd=pageStart + RecordsOnPage;
+        if (pageEnd>recordsCount)
+            pageEnd=recordsCount;
+        system("chcp 65001 > nul");
+        printf("%s\n", title);
+        printf("Страница: %d/%d. Записи с %d по %d из %d.\n",
+               currentPage + 1, pagesCount, pageStart + 1, pageEnd, recordsCount);
+        PrintTableHeader();
+        system("chcp 866 > nul");
+        tData *current = head;
+        for (int i = 0; i < pageStart && current != NULL; i++)
+        {
+        current = current->Next;}
+        for (int i = pageStart; i < pageEnd && current != NULL; i++)
+        {
+            record *r = current->Data;
+            PrintRow(i, r);
+            current = current->Next;}
+        printf("-------------------------------------------------------------------------------------------------\n");
+        system("chcp 65001 > nul");
+        printf("\nУправление: \n1 - предыдущая, \n2 - следующая, \n3 - начало, \n4 - конец, \n5 - перейти на страницу, \n6 - перейти к записи \n0 - выход (перейти к следующему этапу)\n");
+        printf("Введите команду: ");
+        scanf("%d", &input);
+
+        if (input == 1 && currentPage>0)
+            currentPage--;
+        else if (input == 2 && currentPage<pagesCount-1)
+            currentPage++;
+        else if (input == 3)
+            currentPage = 0;
+        else if (input == 4)
+            currentPage = pagesCount - 1;
+        else if (input == 5)
+            currentPage = findPage(pagesCount);
+        else if (input == 6)
+            currentPage = findRecord(RecordsOnPage, recordsCount);
+        else if (input == 0)
+            break;
+
+    } while(1);
+}
 
 int less(const record *a, const record *b)
 {
@@ -196,121 +190,117 @@ int less(const record *a, const record *b)
     else if (fio_cmp > 0)
     {
         return 0;
-    }
+        
+        }
 
-    char street_a[18], street_b[18];
-    strncpy(street_a, a->street, sizeof(street_a) - 1);
+    char street_a[18],street_b[18];
+    strncpy(street_a, a->Street, sizeof(street_a) - 1);
     street_a[sizeof(street_a) - 1] = '\0';
-    strncpy(street_b, b->street, sizeof(street_b) - 1);
+    strncpy(street_b, b->Street, sizeof(street_b) - 1);
     street_b[sizeof(street_b) - 1] = '\0';
     int street_cmp = strcmp(street_a, street_b);
     if (street_cmp < 0)
-    {
-        return 1;
-    }
+    {return 1;}
     else if (street_cmp > 0)
-    {
-        return 0;
-    }
-
+    {return 0;}
     return 1;
 }
 
-void InitializeQueue(tQueue *q)
+void clear(tData *head)
 {
-    q->head = q->tail = NULL;
+    tData *p = head;
+    while (p) {
+    tData *tmp = p;
+    p = p->Next;
+    free(tmp->Data);
+    free(tmp);}
 }
 
 void MergeSeries(tData **a, int q, tData **b, int r, tQueue *c)
 {
-    while (q > 0 && r > 0 && *a != NULL && *b != NULL)
-    {
-        if (less((*a)->data, (*b)->data))
+    while (q>0 && r>0 && *a!=NULL && *b!=NULL)
+    {if (less((*a)->Data, (*b)->Data))
         {
-            if (c->head == NULL)
+            if (c->Head == NULL)
             {
-                c->head = c->tail = *a;
-            }
+                c->Head = c->Tail = *a;}
             else
             {
-                c->tail->next = *a;
-                c->tail = *a;
+                c->Tail->Next = *a;
+                c->Tail =*a;
             }
-            *a = (*a)->next;
+            *a =(*a)->Next;
             q--;
         }
         else
         {
-            if (c->head == NULL)
+            if (c->Head == NULL)
             {
-                c->head = c->tail = *b;
-            }
+                c->Head = c->Tail = *b;}
             else
             {
-                c->tail->next = *b;
-                c->tail = *b;
+                c->Tail->Next = *b;
+                c->Tail = *b;
             }
-            *b = (*b)->next;
+            *b = (*b)->Next;
             r--;
         }
     }
 
-    while (q > 0 && *a != NULL)
+    while (q>0 && *a!= NULL)
     {
-        if (c->head == NULL)
+        if (c->Head == NULL)
         {
-            c->head = c->tail = *a;
+            c->Head = c->Tail = *a;
         }
         else
         {
-            c->tail->next = *a;
-            c->tail = *a;
+            c->Tail->Next = *a;
+            c->Tail = *a;
         }
-        *a = (*a)->next;
+        *a = (*a)->Next;
         q--;
     }
 
-    while (r > 0 && *b != NULL)
+    while (r>0 && *b != NULL)
     {
-        if (c->head == NULL)
+        if (c->Head == NULL)
         {
-            c->head = c->tail = *b;
+            c->Head = c->Tail = *b;
         }
         else
         {
-            c->tail->next = *b;
-            c->tail = *b;
+            c->Tail->Next = *b;
+            c->Tail = *b;
         }
-        *b = (*b)->next;
+        *b = (*b)->Next;
         r--;
     }
 
-    if (c->tail != NULL)
+    if (c->Tail!= NULL)
     {
-        c->tail->next = NULL;
+        c->Tail->Next = NULL;
     }
 }
 
 void SplitLists(tData *head, tData **a, tData **b, int *n)
 {
     *a = head;
-    *b = head->next;
-
+    *b = head->Next;
     tData *k = *a, *p = *b;
     *n = 1;
-
     while (p != NULL)
     {
         (*n)++;
-        k->next = p->next;
+        k->Next = p->Next;
         k = p;
-        p = p->next;
+        p = p->Next;
     }
 }
 
 void MergeSort(tData **S)
 {
-    if (*S == NULL || (*S)->next == NULL)
+    if (*S == NULL || (*S)->Next == NULL)
     {
         return;
     }
@@ -320,7 +310,7 @@ void MergeSort(tData **S)
     int n;
     SplitLists(*S, &a, &b, &n);
 
-    for (int p = 1; p < n; p *= 2)
+    for (int p = 1; p<n; p *= 2)
     {
         InitializeQueue(&c[0]);
         InitializeQueue(&c[1]);
@@ -339,265 +329,260 @@ void MergeSort(tData **S)
             i = 1 - i;
         }
 
-        a = c[0].head;
-        b = c[1].head;
+        a = c[0].Head;
+        b = c[1].Head;
     }
 
-    if (c[0].tail != NULL)
+    if (c[0].Tail != NULL)
     {
-        c[0].tail->next = NULL;
+        c[0].Tail->Next = NULL;
     }
-    *S = c[0].head;
+    *S = c[0].Head;
 }
 
-typedef record *(*GetRecordFunc)(int index, void *source);
-
-int findPage(int pages_count)
-{
-    int input;
-    printf("Введите номер страницы на которую желаеете перейти:");
-
-    do
-    {
-        scanf("%d", &input);
-        if (input < 1 || input > pages_count)
-        {
-            printf("Введите действительный диапазон от 1 до %d:", pages_count);
+int* getWeights(tData *head) {
+    int maxKey = 0;
+    for (tData *current = head; current != NULL; current = current->Next) {
+        if (current->Data->HouseNumber > maxKey) {
+            maxKey = current->Data->HouseNumber;
         }
-        else
-            break;
-    } while (1);
-    return input - 1;
-}
-
-int findRecord(int records_on_page, int records_count)
-{
-    int input;
-    printf("Введите номер записи на которую желаеете перейти:");
-
-    do
-    {
-        scanf("%d", &input);
-        if (input < 1 || input > records_count)
-        {
-            printf("Введите действительный диапазон от 1 до %d:", records_count);
-        }
-        else
-            break;
-    } while (1);
-    return input / records_on_page;
-}
-
-void paginateRecords(void *source, int records_count, GetRecordFunc getRecord, const char *title)
-{
-    if (records_count == 0)
-    {
-        system("chcp 65001 > nul");
-        printf("%s\n", title);
-        printf("Нет данных для отображения.\n");
-        return;
     }
-
-    int current_page = 0;
-    int input;
-
-    do
-    {
-        system("cls");
-
-        int pages_count = (records_count + RECORDS_ON_PAGE - 1) / RECORDS_ON_PAGE;
-        if (current_page >= pages_count)
-            current_page = pages_count - 1;
-        if (current_page < 0)
-            current_page = 0;
-
-        int pageStart = current_page * RECORDS_ON_PAGE;
-        int pageEnd = pageStart + RECORDS_ON_PAGE;
-        if (pageEnd > records_count)
-            pageEnd = records_count;
-
-        system("chcp 65001 > nul");
-        printf("%s\n", title);
-        printf("Страница: %d/%d. Записи с %d по %d из %d.\n",
-               current_page + 1, pages_count, pageStart + 1, pageEnd, records_count);
-        printf("-------------------------------------------------------------------------------------------------\n");
-        printf("| %-6s | %-35s | %-23s | %-9s | %-8s | %-14s |\n",
-               "№", "ФИО", "Улица", "Дом", "Квартира", "Дата");
-        printf("-------------------------------------------------------------------------------------------------\n");
-        system("chcp 866 > nul");
-
-        for (int i = pageStart; i < pageEnd; i++)
-        {
-            record *r = getRecord(i, source);
-            if (!r)
-                continue;
-            printf("| %-4d | %-32s | %-18s | %-6hd | %-8hd | %-10s |\n",
-                   i + 1, r->FIO, r->street, r->House_number, r->Apartment_number, r->Date);
+    int *keyCounts = (int*)calloc(maxKey + 1, sizeof(int));
+    for (tData *current = head; current != NULL; current = current->Next) {
+        int key = current->Data->HouseNumber;
+        if (key <= maxKey) {
+            keyCounts[key]++;
         }
-
-        printf("-------------------------------------------------------------------------------------------------\n");
-        system("chcp 65001 > nul");
-        printf("\nУправление: \n1 - предыдущая, \n2 - следующая, \n3 - начало, \n4 - конец, \n5 - перейти на страницу, \n6 - перейти к записи \n0 - выход (перейти к следующему этапу)\n");
-        printf("Введите команду: ");
-        scanf("%d", &input);
-
-        if (input == 1 && current_page > 0)
-            current_page--;
-        else if (input == 2 && current_page < pages_count - 1)
-            current_page++;
-        else if (input == 3)
-            current_page = 0;
-        else if (input == 4)
-            current_page = pages_count - 1;
-        else if (input == 5)
-            current_page = findPage(pages_count);
-        else if (input == 6)
-            current_page = findRecord(RECORDS_ON_PAGE, records_count);
-        else if (input == 0)
-            break;
-
-    } while (1);
-}
-
-record *getRecordFromArray(int index, void *source)
-{
-    record *arr = (record *)source;
-    return &arr[index];
-}
-
-record *getRecordFromPtrArray(int index, void *source)
-{
-    record **arr = (record **)source;
-    return arr[index];
-}
-
-record *getRecordFromQueue(int index, void *source)
-{
-    tData *cur = (tData *)source;
-    for (int i = 0; i < index && cur; i++)
-        cur = cur->next;
-    return cur ? cur->data : NULL;
-}
-
-void fillQ(tData **head, tData **tail, record *Records)
-{
-    for (int i = 0; i < N; i++)
-    {
-        AddToQueue(head, tail, &Records[i]);
     }
+    
+    return keyCounts;
 }
 
-void BinarySearchAndFill(int n, record **records, const char *X, tData **head, tData **tail)
+void BinarySearch(int n, record **records, const char *searchKey, tData **head, tData **tail)
 {
     int L = 0, R = n - 1;
     int m;
     while (L < R)
     {
-        m = (L + R) / 2;
-        if (strncasecmp(records[m]->FIO, X, 3) < 0)
-        {
-            L = m + 1;
-        }
+        m = (L+R)/2;
+        if (strncasecmp(records[m]->FIO, searchKey, 3) < 0)
+            {
+                L = m+1;
+            }
         else
         {
             R = m;
         }
     }
-    if (R >= n || strncasecmp(records[R]->FIO, X, 3) != 0)
+    if (R >= n || strncasecmp(records[R]->FIO, searchKey, 3) != 0)
     {
         return;
     }
     int index = R;
     int count = 0;
-    while (index < n && strncasecmp(records[index]->FIO, X, 3) == 0)
+    while (index<n && strncasecmp(records[index]->FIO, searchKey, 3) == 0)
     {
         AddToQueue(head, tail, records[index]);
         index++;
+        count++;
     }
 }
 
-int main()
+tData *ReadDataToQueue(const char *filename, int *recordsCount)
 {
-
-    FILE *fp;
-    fp = fopen("testBase4.dat", "rb");
+    FILE *fp = fopen(filename, "rb");
     if (fp == NULL)
+    {printf("Ошибка открытия файла!\n");
+        return NULL;}
+    tData *head = NULL, *tail = NULL;
+    *recordsCount = 0;
+    while (*recordsCount < N)
     {
-        printf("Ошибка открытия файла!\n");
-        return 1;
+        record *newRecord = malloc(sizeof(record));
+        if (newRecord == NULL)
+        {printf("Ошибка выделения памяти!\n");
+            break;
+        }
+        if (fread(newRecord, sizeof(record), 1, fp) != 1)
+        {
+        free(newRecord);
+            break;
+        }
+        AddToQueue(&head, &tail, newRecord);
+        (*recordsCount)++;
     }
-    record *allRecords = malloc(N * sizeof(record));
-    int records_count = fread(allRecords, sizeof(record), 4000, fp);
+    fclose(fp);
+    return head;
+}
 
-    int current_page = 0;
-    paginateRecords(allRecords, records_count, getRecordFromArray, "ВСЕ ЗАПИСИ");
-    tData *head = NULL;
-    tData *tail = NULL;
-    fillQ(&head, &tail, allRecords);
-    MergeSort(&head);
+Vertex *AddVertex(Vertex *root, Vertex *vertex)
+{
+    if (root == NULL)
+    {return vertex;}
+    else if (vertex->Data->HouseNumber < root->Data->HouseNumber)
+    {
+    root->Left = AddVertex(root->Left, vertex);
+    }
+    else
+    {
+        root->Right = AddVertex(root->Right, vertex);}
+    return root;
+}
+
+Vertex *BuildTree(tData *head)
+{
+    if (head == NULL)
+        return NULL;
+    int n = countQueue(head);
+    int *keyCounts = getWeights(head);
+    Vertex **V = (Vertex **)malloc(n * sizeof(Vertex *));
+    int i = 0;
+    for (tData *current = head; current != NULL; current = current->Next)
+    {
+        V[i] = (Vertex *)malloc(sizeof(Vertex));
+        V[i]->Data = current->Data;
+        V[i]->Weight = keyCounts[current->Data->HouseNumber];
+        V[i]->Left = NULL;
+        V[i]->Right = NULL;
+        V[i]->Used = false;
+        i++;
+    }
+    Vertex *Root = NULL;
+    for (int i = 0; i < n; i++)
+    {
+        int max = 0;
+        int Index = -1;
+        for (int j = 0; j < n; j++)
+        {
+            if (V[j]->Weight > max && V[j]->Used == false)
+            {
+                max = V[j]->Weight;
+                Index = j;
+            }
+        }
+        if (Index != -1)
+        {
+            V[Index]->Used = true;
+            Root = AddVertex(Root, V[Index]);
+        }
+    }
+    free(V);
+    free(keyCounts);
+    return Root;
+}
+
+void PrintTree(Vertex *root, int *index)
+{
+    if (root == NULL)
+        return;
+    PrintTree(root->Left, index);
+    PrintRow(*index, root->Data);
+    (*index)++;
+    PrintTree(root->Right, index);
+}
+void PrintTReeTable(Vertex *root, const char *title)
+{
+    printf("%s\n", title);
+    PrintTableHeader();
+    int index = 0;
+    PrintTree(root, &index);
+    printf("---------------------------------------------------------------------------------------------------\n");
+}
+
+void SearchInTree(Vertex *root, int key, int foundCounter)
+{
+    if (root == NULL)
+        printf("-------------------------------------------------------------------------------------------------\n");
+    if (key == root->Data->HouseNumber)
+    {
+        system("chcp 866 > nul");
+        record *p = root->Data;
+        PrintRow(foundCounter, p);
+        foundCounter++;
+        SearchInTree(root->Right, key, foundCounter);
+    }
+    if (key < root->Data->HouseNumber)
+        SearchInTree(root->Left, key, foundCounter);
+    else
+        SearchInTree(root->Right, key, foundCounter);
+}
+
+void FreeTree(Vertex *root)
+{
+    if (root)
+    {
+        FreeTree(root->Left);
+        FreeTree(root->Right);
+        free(root);
+    }
+}
+
+record **BuildIndex(tData *head, int recordsCount)
+{
+    record **indexArray = malloc(recordsCount * sizeof(record *));
     tData *current = head;
-    record **sortedPointers = malloc(records_count * sizeof(record *));
-
-    for (int i = 0; i < records_count && current != NULL; i++)
+    for (int i = 0; i < recordsCount && current != NULL; i++)
     {
-        sortedPointers[i] = current->data;
-        current = current->next;
+        indexArray[i] = current->Data;
+        current = current->Next;
     }
-    clear(head);
-    paginateRecords(sortedPointers, records_count, getRecordFromPtrArray, "ОТСОРТИРОВАННЫЕ ЗАПИСИ");
-    tData *SearchQ = NULL;
-    char SearchKey[4];
-    int scnresult;
+    return indexArray;
+}
+
+void InputSearchKey(char *searchKey)
+{
     do
     {
-        printf("Введите ровно 3 буквы фамилии для поиска (если символов будет больше 3х, остаток будет отброшен): ");
+        printf("Введите 3 буквы  фамилии поиска: ");
         system("chcp 866 > nul");
-        scnresult = scanf("%3s", SearchKey);
+        scanf("%3s", searchKey);
         system("chcp 65001 > nul");
+
         int c;
         while ((c = getchar()) != '\n' && c != EOF)
             ;
 
-        if (strlen(SearchKey) != 3)
+        if (strlen(searchKey) != 3)
         {
-            printf("Введите именно 3 символа.\n");
+            printf("Введите именно 3 символа\n");
             continue;
         }
         break;
     } while (1);
-    tData *SearchHead = NULL;
-    tData *SearchTail = NULL;
-    int search_count = 0;
-    BinarySearchAndFill(N, sortedPointers, SearchKey, &SearchHead, &SearchTail);
-    tData *tmp = SearchHead;
-    while (tmp)
-    {
-        search_count++;
-        tmp = tmp->next;
-    }
-    paginateRecords(SearchHead, search_count, getRecordFromQueue, "РЕЗУЛЬТАТЫ ПОИСКА");
-    if (search_count > 0)
-    {
-        system("cls");
-        Vertex *TreeRoot = BuildTree(SearchHead);
-        PrintTreeAsTable(TreeRoot, "ДЕРЕВО ПО НОМЕРУ ДОМА (Обход ->)");
+}
 
-        int key;
-        system("chcp 65001 > nul");
-        printf("\nВведите номер дома для поиска: ");
-        scanf("%d", &key);
-        printf("-------------------------------------------------------------------------------------------------\n");
-        printf("| %-7s | %-35s | %-23s | %-9s | %-8s | %-14s |\n",
-               "№", "ФИО", "Улица", "Дом", "Квартира", "Дата");
-        printf("-------------------------------------------------------------------------------------------------\n");
-        SearchInTree(TreeRoot, key, 1);
-        system("chcp 65001 > nul");
-
-        FreeTree(TreeRoot);
+int main()
+{
+    int recordsCount;
+    tData *head = ReadDataToQueue("testBase4.dat", &recordsCount);
+    if (head == NULL || recordsCount == 0)
+    {
+        printf("Не удалось прочитать данные\n");
+        return 1;
     }
-    clear(SearchHead);
-    free(sortedPointers);
-    free(allRecords);
-    fclose(fp);
+    printPages(head, "Считанная база данных");
+    MergeSort(&head);
+    printPages(head, "Остсортированные списки");
+    record **indexArray = BuildIndex(head, recordsCount);
+    char searchKey[4];
+    InputSearchKey(searchKey);
+    tData *searchHead = NULL;
+    tData *searchTail = NULL;
+    BinarySearch(recordsCount, indexArray, searchKey, &searchHead, &searchTail);
+    if (searchHead != NULL)
+    {
+        printPages(searchHead, "Результат поиска");
+    }
+    Vertex *TreeRoot = BuildTree(searchHead);
+    PrintTReeTable(TreeRoot, "Дерево построенное по номеру ома");
+    int key;
+    system("chcp 65001 > nul");
+    printf("\nВведите номер дома для поиска: ");
+    scanf("%d", &key);
+    PrintTableHeader();
+    SearchInTree(TreeRoot, key, 0);
+    clear(head);
+    clear(searchHead);
+    free(indexArray);
     return 0;
 }
